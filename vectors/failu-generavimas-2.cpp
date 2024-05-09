@@ -17,10 +17,7 @@ void writeCategorizedStudents(const vector<Student>& students, const string& fil
     }
 
     outputFile.close();
-    auto stop = chrono::high_resolution_clock::now(); 
-    chrono::duration<double> time = stop - start;
-    //cout << "Surūšiotus studentus rasite: " << filename << endl;
-    cout << "Studentų išvedimo į " << filename << " laikas: " << time.count() << " sekundės " << endl;
+
 }
 
 void generateFiles() {
@@ -89,49 +86,42 @@ void sortAndWriteToFile(const string& inputFilename) {
     chrono::duration<double> time1 = stop1 - start;
     cout << "Studentų rūšiavimo didėjimo tvarka " << inputFilename << " laikas: " << time1.count() << " sekundės " << endl;
 
-    vector<Student> vargsiukai;
+     vector<Student> vargsiukai;
 
-    for (auto it = students.begin(); it != students.end();) {
+    auto it = students.begin();
+    while (it != students.end()) {
     if (it->finalGrade < 5.0) {
-        vargsiukai.push_back(std::move(*it)); // Move the student to vargsiukai container
-        it = students.erase(it); // Erase the student from the original container
-    } else {
+        vargsiukai.push_back(*it);
+        it = students.erase(it); 
+    } else { 
         ++it;
     }
 }
 
-auto stop = chrono::high_resolution_clock::now();
-chrono::duration<double> time = stop - start;
-cout << "Studentų skirstymas " << inputFilename << " į kietekus ir vargšiukus pagal 2 strategiją laikas: " << time.count() << " sekundės " << endl;
-cout << endl;
 
-writeCategorizedStudents(vargsiukai, "vargsiukai_" + inputFilename);
+    auto stop = chrono::high_resolution_clock::now();
+    chrono::duration<double> time = stop - start;
+
+    cout << "Studentų skirstymas " << inputFilename << " į kietekus ir vargšiukus laikas: " << time.count() << " sekundės " << endl;
+    cout << endl;
+
+    auto start3 = chrono::high_resolution_clock::now(); 
+    
+    writeCategorizedStudents(vargsiukai, "vargsiukai_" + inputFilename);
+    writeCategorizedStudents(students, "kietiakai_" + inputFilename);
+    
+    auto stop3 = chrono::high_resolution_clock::now(); 
+    chrono::duration<double> duration3 = stop3 - start3;    
+    cout << "Studentų išvedimo į vargšiukus ir kietekus laikas: "  << duration3.count() << " sekundės " << endl;
 }
 
-
 void generatingFinal() {
-    cout << "1 - Generuoti failus" << endl;
-    string choice;
-
-    cin >> choice;
-
-    if (choice == "1") {
         auto start = chrono::high_resolution_clock::now(); 
         generateFiles();
-        std::this_thread::sleep_for(std::chrono::seconds(1));
-        sortAndWriteToFile("1000.txt");
-        sortAndWriteToFile("10000.txt");
-        sortAndWriteToFile("100000.txt");
-        sortAndWriteToFile("1000000.txt");
-        sortAndWriteToFile("10000000.txt");
-        auto stop = chrono::high_resolution_clock::now(); // Stop measuring time
+        auto stop = chrono::high_resolution_clock::now(); 
         auto duration = chrono::duration_cast<chrono::seconds>(stop - start);
         cout << endl;
         cout << "Generuoti failus veiksmo veikimo laikas : " << duration.count() << " sekundės " << endl;
         cin.ignore(numeric_limits<streamsize>::max(), '\n');
         return;
-    } else {
-        cout << "Neteisinga įvestis." << endl;
-         exit(EXIT_FAILURE);
-    }
 }

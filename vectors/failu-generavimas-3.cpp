@@ -17,6 +17,10 @@ void writeCategorizedStudents(const vector<Student>& students, const string& fil
     }
 
     outputFile.close();
+    auto stop = chrono::high_resolution_clock::now(); 
+    chrono::duration<double> time = stop - start;
+    //cout << "Surūšiotus studentus rasite: " << filename << endl;
+    cout << "Studentų išvedimo į " << filename << " laikas: " << time.count() << " sekundės " << endl;
 }
 
 void generateFiles() {
@@ -31,28 +35,28 @@ void generateFiles() {
             cerr << "Neišeina sukurti: " << filename << endl;
             continue;
         }
-        stringstream ss;
-        ss << left << setw(25) << "Vardas" << setw(25) << "Pavarde";
+
+        outputFile << left << setw(25) << "Vardas" << setw(25) << "Pavarde";
         for (int i = 1; i <= 15; ++i) {
-            ss << left << setw(10) << "ND" + to_string(i);
+            outputFile << left << setw(10) << "ND" + to_string(i);
         }
-        ss << left << setw(10) << "Egz." << endl;
+        outputFile << left << setw(10) << "Egz." << endl;
 
         for (int i = 1; i <= numRecords; ++i) {
             Student student;
             student.firstName = "Vardas" + to_string(i);
             student.lastName = "Pavarde" + to_string(i);
-            ss << left << setw(25) << student.firstName << setw(25) << student.lastName;
+            outputFile << left << setw(25) << student.firstName << setw(25) << student.lastName;
         
             for (int j = 1; j <= 15; ++j) {
                 int grade = rand() % 10 + 1; 
-                ss << left << setw(10) << grade;
+                outputFile << left << setw(10) << grade;
             }
 
             int finalExamGrade = rand() % 10 + 1; 
-            ss << left << setw(10) << finalExamGrade << endl;
+            outputFile << left << setw(10) << finalExamGrade << endl;
         }
-        outputFile << ss.str();
+
         outputFile.close();
         auto stop = chrono::high_resolution_clock::now(); 
         chrono::duration<double> time = stop - start;
@@ -85,16 +89,18 @@ void sortAndWriteToFile(const string& inputFilename) {
     chrono::duration<double> time1 = stop1 - start;
     cout << "Studentų rūšiavimo didėjimo tvarka " << inputFilename << " laikas: " << time1.count() << " sekundės " << endl;
 
-    vector<Student> vargsiukai, kietiakai;
-    for (const auto& student : students) {
-        if (student.finalGrade < 5.0 ) {
-            vargsiukai.push_back(student);
-        } else {
-            kietiakai.push_back(student);
-        }
-    }
+    vector<Student> vargsiukai;
 
-    auto stop = chrono::high_resolution_clock::now();
+    auto partitionPoint = std::remove_if(students.begin(), students.end(), [&](const Student& student) { //nukelia netinkancius studnetus i vektoriaus prieky ir grazina nauja taska nuo kurio nebetink
+        if (student.finalGrade < 5.0) {
+            vargsiukai.push_back(student);
+            return true; 
+        }
+        return false;
+    });
+    students.erase(partitionPoint, students.end()); //cia istrina vargsiukus is vektoriaus 
+
+auto stop = chrono::high_resolution_clock::now();
     chrono::duration<double> time = stop - start;
 
     cout << "Studentų skirstymas " << inputFilename << " į kietekus ir vargšiukus laikas: " << time.count() << " sekundės " << endl;
@@ -103,7 +109,7 @@ void sortAndWriteToFile(const string& inputFilename) {
     auto start3 = chrono::high_resolution_clock::now(); 
     
     writeCategorizedStudents(vargsiukai, "vargsiukai_" + inputFilename);
-    writeCategorizedStudents(kietiakai, "kietiakai_" + inputFilename);
+    writeCategorizedStudents(students, "kietiakai_" + inputFilename);
     
     auto stop3 = chrono::high_resolution_clock::now(); 
     chrono::duration<double> duration3 = stop3 - start3;    
