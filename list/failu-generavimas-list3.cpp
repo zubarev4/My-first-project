@@ -19,6 +19,7 @@ void writeCategorizedStudents(const list<Student>& students, const string& filen
     outputFile.close();
     auto stop = chrono::high_resolution_clock::now(); 
     chrono::duration<double> time = stop - start;
+    //cout << "Surūšiotus studentus rasite: " << filename << endl;
     cout << "Studentų išvedimo į " << filename << " laikas: " << time.count() << " sekundės " << endl;
 }
 
@@ -70,16 +71,15 @@ void generateFiles() {
     }
 }
 
-
 void sortAndWriteToFile(const string& inputFilename) {
-    list<Student> students, vargsiukai, kietiakai;
+    list<Student> students, vargsiukai;
     readFromFile(inputFilename, students);
 
     auto start = chrono::high_resolution_clock::now();
-
     for (auto& student : students) {
         student.finalGrade = calculateAverage(student) * 0.4 + student.finalExamGrade * 0.6;
     }
+
     students.sort([](const Student& a, const Student& b) {
         return a.finalGrade > b.finalGrade;
     });
@@ -88,14 +88,13 @@ void sortAndWriteToFile(const string& inputFilename) {
     chrono::duration<double> time1 = stop1 - start;
     cout << "Studentų rūšiavimo didėjimo tvarka " << inputFilename << " laikas: " << time1.count() << " sekundės " << endl;
 
-    for (const auto& student : students) {
-        if (student.finalGrade < 5.0 ) {
-            vargsiukai.push_back(student);
-        } else {
-            kietiakai.push_back(student);
-        }
-    }
 
+    auto vargsiukaiEnd = std::remove_if(students.begin(), students.end(), [&](const Student& student) {
+        return student.finalGrade < 5.0;
+    });
+    std::copy(vargsiukaiEnd, students.end(), std::back_inserter(vargsiukai)); // " simplifies the code by handling the resizing of the destination container automatically."
+    students.erase(vargsiukaiEnd, students.end());
+    
     auto stop = chrono::high_resolution_clock::now();
     chrono::duration<double> time = stop - start;
 
@@ -105,7 +104,7 @@ void sortAndWriteToFile(const string& inputFilename) {
     auto start3 = chrono::high_resolution_clock::now(); 
     
     writeCategorizedStudents(vargsiukai, "vargsiukai_" + inputFilename);
-    writeCategorizedStudents(kietiakai, "kietiakai_" + inputFilename);
+    writeCategorizedStudents(students, "kietiakai_" + inputFilename);
     
     auto stop3 = chrono::high_resolution_clock::now(); 
     chrono::duration<double> duration3 = stop3 - start3;    
