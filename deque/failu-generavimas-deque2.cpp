@@ -19,6 +19,7 @@ void writeCategorizedStudents(const deque<Student>& students, const string& file
     outputFile.close();
     auto stop = chrono::high_resolution_clock::now(); 
     chrono::duration<double> time = stop - start;
+    //cout << "Surūšiotus studentus rasite: " << filename << endl;
     cout << "Studentų išvedimo į " << filename << " laikas: " << time.count() << " sekundės " << endl;
 }
 
@@ -72,7 +73,7 @@ void generateFiles() {
 
 
 void sortAndWriteToFile(const string& inputFilename) {
-    deque<Student> students,vargsiukai, kietiakai;
+    deque<Student> students,vargsiukai;
     readFromFile(inputFilename, students);
 
     auto start = chrono::high_resolution_clock::now();
@@ -89,13 +90,15 @@ void sortAndWriteToFile(const string& inputFilename) {
     chrono::duration<double> time1 = stop1 - start;
     cout << "Studentų rūšiavimo didėjimo tvarka " << inputFilename << " laikas: " << time1.count() << " sekundės " << endl;
 
-    for (const auto& student : students) {
-        if (student.finalGrade < 5.0 ) {
-            vargsiukai.push_back(student);
-        } else {
-            kietiakai.push_back(student);
-        }
+
+    for (auto it = students.begin(); it != students.end();) {
+    if (it->finalGrade < 5.0) {
+        vargsiukai.push_back(std::move(*it)); // Move the student to vargsiukai container
+        it = students.erase(it); // Erase the student from the original container
+    } else {
+        ++it;
     }
+}
 
     auto stop = chrono::high_resolution_clock::now();
     chrono::duration<double> time = stop - start;
@@ -106,7 +109,7 @@ void sortAndWriteToFile(const string& inputFilename) {
     auto start3 = chrono::high_resolution_clock::now(); 
     
     writeCategorizedStudents(vargsiukai, "vargsiukai_" + inputFilename);
-    writeCategorizedStudents(kietiakai, "kietiakai_" + inputFilename);
+    writeCategorizedStudents(students, "kietiakai_" + inputFilename);
     
     auto stop3 = chrono::high_resolution_clock::now(); 
     chrono::duration<double> duration3 = stop3 - start3;    
@@ -123,4 +126,3 @@ void generatingFinal() {
         cin.ignore(numeric_limits<streamsize>::max(), '\n');
         return;
 }
-
